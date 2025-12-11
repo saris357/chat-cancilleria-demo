@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Demo Chat – Asistente Cancillería</title>
+  <style>
+    body { font-family: Inter, Arial, sans-serif; background:#f3f4f6; margin:0; padding:20px; color:#0b2740; }
+    .wrap { max-width:680px; margin:20px auto; background:#fff; border-radius:10px; padding:18px; box-shadow:0 8px 30px rgba(11,39,64,0.06); }
+    h2 { margin:0 0 12px 0; color:#0b3a66; font-size:20px; }
+    #messages { max-height:420px; overflow:auto; padding:12px; display:flex; flex-direction:column; gap:10px; border:1px solid #eef2f6; border-radius:8px; background:#fcfeff; }
+    .msg { padding:10px 14px; border-radius:12px; max-width:78%; word-break:break-word; }
+    .user { align-self:flex-end; background:#d1eaff; color:#0b2f4f; }
+    .bot  { align-self:flex-start; background:#eef2f7; color:#022a44; }
+    .controls { display:flex; gap:8px; margin-top:12px; }
+    input[type="text"] { flex:1; padding:10px; border-radius:8px; border:1px solid #d1d5db; font-size:15px; }
+    button { padding:10px 14px; border-radius:8px; border:none; background:#0b5fa8; color:white; cursor:pointer; }
+    .note { margin-top:10px; font-size:13px; color:#6b7280; }
+    .error { color:#b91c1c; font-weight:600; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h2>Demo Chat – Asistente Cancillería (Pruebas)</h2>
+
+    <div id="messages" aria-live="polite" role="log"></div>
+
+    <div class="controls" style="margin-top:12px">
+      <input id="input" type="text" placeholder="Escribe tu mensaje..." autocomplete="off" />
+      <button id="sendBtn" type="button">Enviar</button>
+    </div>
+
+    <div class="note">
+      Atención: este demo incluye un token embebido. Úsalo solo en entornos controlados.
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    // CONFIG
+    const ENDPOINT = "https://api-backend-service.comware.com.co:3026/api/sam-assistant/user-question-bp/f4758fe7-94da-4608-9650-cb717fcf9e9f";
+    const TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjdkYTkzNmQ1LWIzM2MtNDlhYi04YTk0LTVjM2E4OWZmZjk1YyIsImlhdCI6MTc2NTQ3NjUxNywiZXhwIjoxNzY1NzM1NzE3fQ.29cX-fKKxiIh86IxLq7My2QAtND2gWE_mtccmbl3QXc";
+
+    function generateThreadId() {
+      if (crypto.randomUUID) return crypto.randomUUID();
+      return 'tid-' + Date.now() + '-' + Math.random().toString(36).substring(2);
+    }
+
+    const THREAD_ID = generateThreadId();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const messagesEl = document.getElementById('messages');
+      const inputEl = document.getElementById('input');
+      const sendBtn = document.getElementById('sendBtn');
+
+      function addMsg(text, who) {
+        const d = document.createElement('div');
+        d.className = 'msg ' + (who === 'user' ? 'user' : 'bot');
+        d.textContent = text;
+        messagesEl.appendChild(d);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      function showError(text) {
+        const d = document.createElement('div');
+        d.className = 'msg bot';
+        d.innerHTML = '<span class="error">' + text + '</span>';
+        messagesEl.appendChild(d);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      async function sendQuestion(q) {
+        addMsg(q, 'user');
+        sendBtn.disabled = true;
+        inputEl.disabled = true;
+
+        try {
+          const res = await fetch(ENDPOINT, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + TOKEN
+            },
+            body: JSON.stringify({
+              question: q,
+              threadId: THREAD_ID,
+              channel: 'web'
+            })
+          });
+
+          if (!res.ok) {
+            const txt = await res.text().catch(()=>res.statusText);
+            showError('Error ' + res.status + ': ' + (txt || res.statusText));
+            return;
+          }
+
+          const data = await res.json().catch(()=>null);
+          if (!data) { showError('Respuesta inválida del servidor'); return; }
+
+          let reply = null;
+
+          if (typeof data.isLastContent === 'string' && data.isLastContent.trim()) {
+            reply = data.isLastContent;
+          }
+
+          if (!reply && Array.isArray(data.messages) && data.messages.length) {
+            try {
+              const last = data.messages[data.messages.length - 1];
+              if (last?.content?.[0]?.text) reply = last.content[0].text;
+            } catch(e){}
+          }
+
+          if (!reply) {
+            if (typeof data.response === 'string') reply = data.response;
+            else if (typeof data.answer === 'string') reply = data.answer;
+            else if (data.result?.output) reply = data.result.output;
+          }
+
+          if (!reply) {
+            for (const k in data) {
+              if (typeof data[k] === 'string' && data[k].trim()) reply = data[k];
+            }
+          }
+
+          if (!reply) reply = 'Respuesta no disponible';
+
+          // 🔥 LIMPIEZA DEFINITIVA DE ETIQUETAS HTML
+          reply = reply
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<\/?[^>]+>/gi, '')
+            .replace(/&nbsp;/gi, ' ')
+            .trim();
+
+          addMsg(reply, 'bot');
+
+        } catch (err) {
+          showError('Error conectando: ' + err.message);
+        } finally {
+          sendBtn.disabled = false;
+          inputEl.disabled = false;
+          inputEl.focus();
+        }
+      }
+
+      sendBtn.addEventListener('click', () => {
+        const t = inputEl.value.trim();
+        if (!t) return;
+        sendQuestion(t);
+        inputEl.value = '';
+      });
+
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') sendBtn.click();
+      });
+
+      addMsg('Hola, escribe tu mensaje para probar.', 'bot');
+    });
+  })();
+  </script>
+</body>
+</html>
+
+
+
