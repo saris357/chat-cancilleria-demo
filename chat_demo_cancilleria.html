@@ -5,22 +5,97 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Demo Chat – Asistente Cancillería</title>
 
-  <!-- ✅ Markdown renderer -->
+  <!-- Markdown renderer -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <style>
-    body { font-family: Inter, Arial, sans-serif; background:#f3f4f6; margin:0; padding:20px; color:#0b2740; }
-    .wrap { max-width:680px; margin:20px auto; background:#fff; border-radius:10px; padding:18px; box-shadow:0 8px 30px rgba(11,39,64,0.06); }
-    h2 { margin:0 0 12px 0; color:#0b3a66; font-size:20px; }
-    #messages { max-height:420px; overflow:auto; padding:12px; display:flex; flex-direction:column; gap:10px; border:1px solid #eef2f6; border-radius:8px; background:#fcfeff; }
-    .msg { padding:10px 14px; border-radius:12px; max-width:78%; word-break:break-word; white-space:normal; }
-    .user { align-self:flex-end; background:#d1eaff; color:#0b2f4f; }
-    .bot  { align-self:flex-start; background:#eef2f7; color:#022a44; }
-    .controls { display:flex; gap:8px; margin-top:12px; }
-    input[type="text"] { flex:1; padding:10px; border-radius:8px; border:1px solid #d1d5db; font-size:15px; }
-    button { padding:10px 14px; border-radius:8px; border:none; background:#0b5fa8; color:white; cursor:pointer; }
-    .note { margin-top:10px; font-size:13px; color:#6b7280; }
-    .error { color:#b91c1c; font-weight:600; }
+    body {
+      font-family: Inter, Arial, sans-serif;
+      background:#f3f4f6;
+      margin:0;
+      padding:20px;
+      color:#0b2740;
+    }
+    .wrap {
+      max-width:680px;
+      margin:20px auto;
+      background:#fff;
+      border-radius:10px;
+      padding:18px;
+      box-shadow:0 8px 30px rgba(11,39,64,0.06);
+    }
+    h2 {
+      margin:0 0 12px 0;
+      color:#0b3a66;
+      font-size:20px;
+    }
+    #messages {
+      max-height:420px;
+      overflow:auto;
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      border:1px solid #eef2f6;
+      border-radius:8px;
+      background:#fcfeff;
+    }
+    .msg {
+      padding:12px 16px;
+      border-radius:14px;
+      max-width:80%;
+      line-height:1.45;
+      white-space:normal;
+    }
+    .msg p {
+      margin:0 0 8px 0;
+    }
+    .msg ul {
+      margin:6px 0 10px 18px;
+      padding:0;
+    }
+    .msg li {
+      margin-bottom:6px;
+    }
+    .user {
+      align-self:flex-end;
+      background:#d1eaff;
+      color:#0b2f4f;
+    }
+    .bot {
+      align-self:flex-start;
+      background:#eef2f7;
+      color:#022a44;
+    }
+    .controls {
+      display:flex;
+      gap:8px;
+      margin-top:12px;
+    }
+    input[type="text"] {
+      flex:1;
+      padding:10px;
+      border-radius:8px;
+      border:1px solid #d1d5db;
+      font-size:15px;
+    }
+    button {
+      padding:10px 14px;
+      border-radius:8px;
+      border:none;
+      background:#0b5fa8;
+      color:white;
+      cursor:pointer;
+    }
+    .note {
+      margin-top:10px;
+      font-size:13px;
+      color:#6b7280;
+    }
+    .error {
+      color:#b91c1c;
+      font-weight:600;
+    }
   </style>
 </head>
 <body>
@@ -31,7 +106,7 @@
 
     <div class="controls">
       <input id="input" type="text" placeholder="Escribe tu mensaje..." autocomplete="off" />
-      <button id="sendBtn" type="button">Enviar</button>
+      <button id="sendBtn">Enviar</button>
     </div>
 
     <div class="note">
@@ -43,7 +118,7 @@
 (function(){
 
   const ENDPOINT = "https://api-backend-service.comware.com.co:3026/api/sam-assistant/user-question-bp/f4758fe7-94da-4608-9650-cb717fcf9e9f";
-  const TOKEN = "TU_TOKEN";
+  const TOKEN = "TU_TOKEN_AQUI";
 
   function generateThreadId() {
     return crypto.randomUUID ? crypto.randomUUID() : 'tid-' + Date.now();
@@ -53,6 +128,13 @@
 
   function isUUID(text) {
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(text.trim());
+  }
+
+  function formatText(text) {
+    // Convierte texto plano en HTML legible
+    return text
+      .replace(/\n\n+/g, '</p><p>')
+      .replace(/\n/g, '<br>');
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -66,18 +148,17 @@
       const d = document.createElement('div');
       d.className = 'msg ' + (who === 'user' ? 'user' : 'bot');
 
-      // ✅ Render Markdown correctamente
-      d.innerHTML = marked.parse(text, { breaks: true });
+      // Primero intenta Markdown
+      let html = marked.parse(text, { breaks: true });
 
+      // Si no hay listas ni etiquetas, fuerza formato de texto
+      if (!html.includes('<ul>') && !html.includes('<p>')) {
+        html = '<p>' + formatText(text) + '</p>';
+      }
+
+      d.innerHTML = html;
       messagesEl.appendChild(d);
       messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
-
-    function showError(text) {
-      const d = document.createElement('div');
-      d.className = 'msg bot error';
-      d.textContent = text;
-      messagesEl.appendChild(d);
     }
 
     async function sendQuestion(q) {
@@ -99,26 +180,18 @@
           })
         });
 
-        if (!res.ok) {
-          showError('Error ' + res.status);
-          return;
-        }
-
         const data = await res.json();
-        let reply =
+        const reply =
           data.isLastContent ||
           data.response ||
           data.answer ||
-          data.result?.output;
-
-        if (!reply && Array.isArray(data.messages)) {
-          reply = data.messages.at(-1)?.content?.[0]?.text;
-        }
+          data.result?.output ||
+          data.messages?.at(-1)?.content?.[0]?.text;
 
         addMsg(reply || 'Respuesta no disponible', 'bot');
 
       } catch (e) {
-        showError('Error de conexión');
+        addMsg('Error de conexión con el servidor.', 'bot');
       } finally {
         sendBtn.disabled = false;
         inputEl.disabled = false;
@@ -137,10 +210,12 @@
 
     addMsg('Hola 👋\n\nEscribe tu mensaje para probar el asistente.', 'bot');
   });
+
 })();
 </script>
 </body>
 </html>
+
 
 
 
