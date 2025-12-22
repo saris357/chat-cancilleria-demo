@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Demo Chat – Asistente Cancillería</title>
 
+  <!-- Markdown -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <style>
@@ -38,6 +39,7 @@
       border-radius: 12px;
       max-width: 80%;
       line-height: 1.45;
+      white-space: normal;
     }
     .user {
       align-self: flex-end;
@@ -67,6 +69,10 @@
       color: white;
       cursor: pointer;
     }
+    .error {
+      color: #b91c1c;
+      font-weight: 600;
+    }
   </style>
 </head>
 
@@ -83,6 +89,14 @@
   </div>
 
   <script>
+    // =========================
+    // CONFIG ORIGINAL
+    // =========================
+    const ENDPOINT = "https://api-backend-service.comware.com.co:3026/api/sam-assistant/user-question-bp/f4758fe7-94da-4608-9650-cb717fcf9e9f";
+    const TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjdkYTkzNmQ1LWIzM2MtNDlhYi04YTk0LTVjM2E4OWZmZjk1YyIsImlhdCI6MTc2NjQyMzc3OSwiZXhwIjoxNzY2NjgyOTc5fQ.4l0tlk9PF1uYqePpnl4_Zlrd57EMrYo4NgFO130f7KM";
+
+    const THREAD_ID = crypto.randomUUID();
+
     const messages = document.getElementById("messages");
     const form = document.getElementById("chatForm");
     const input = document.getElementById("input");
@@ -95,26 +109,64 @@
       messages.scrollTop = messages.scrollHeight;
     }
 
-    form.addEventListener("submit", (e) => {
-      e.preventDefault(); // 🚫 evita recarga
+    function addError(text) {
+      const d = document.createElement("div");
+      d.className = "msg bot error";
+      d.textContent = text;
+      messages.appendChild(d);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
       const text = input.value.trim();
       if (!text) return;
 
       addMsg(text, "user");
       input.value = "";
 
-      setTimeout(() => {
-        addMsg(
-          "🛂 **Información general sobre pasaportes**\n\n- Agendar cita\n- Asistir personalmente\n- Realizar el pago correspondiente",
-          "bot"
-        );
-      }, 600);
+      try {
+        const res = await fetch(ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + TOKEN
+          },
+          body: JSON.stringify({
+            question: text,
+            threadId: THREAD_ID,
+            channel: "web"
+          })
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          addError(`Error ${res.status}: ${errText}`);
+          return;
+        }
+
+        const data = await res.json();
+
+        let reply =
+          data.isLastContent ||
+          data.response ||
+          data.answer ||
+          data.result?.output ||
+          "Respuesta no disponible";
+
+        addMsg(reply, "bot");
+
+      } catch (err) {
+        addError("Error de conexión: " + err.message);
+      }
     });
 
     addMsg("Hola 👋\n\nEscribe tu mensaje para probar el asistente.", "bot");
   </script>
 </body>
 </html>
+
 
 
 
