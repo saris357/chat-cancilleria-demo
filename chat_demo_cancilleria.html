@@ -11,93 +11,88 @@
   <style>
     body {
       font-family: Inter, Arial, sans-serif;
-      background:#f3f4f6;
-      margin:0;
-      padding:20px;
-      color:#0b2740;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 20px;
+      color: #0b2740;
     }
     .wrap {
-      max-width:680px;
-      margin:20px auto;
-      background:#fff;
-      border-radius:10px;
-      padding:18px;
-      box-shadow:0 8px 30px rgba(11,39,64,0.06);
+      max-width: 680px;
+      margin: 20px auto;
+      background: #fff;
+      border-radius: 10px;
+      padding: 18px;
+      box-shadow: 0 8px 30px rgba(11,39,64,0.06);
     }
     h2 {
-      margin:0 0 12px 0;
-      color:#0b3a66;
-      font-size:20px;
+      margin: 0 0 12px 0;
+      color: #0b3a66;
+      font-size: 20px;
     }
     #messages {
-      max-height:420px;
-      overflow:auto;
-      padding:12px;
-      display:flex;
-      flex-direction:column;
-      gap:14px;
-      border:1px solid #eef2f6;
-      border-radius:8px;
-      background:#fcfeff;
+      max-height: 420px;
+      overflow: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border: 1px solid #eef2f6;
+      border-radius: 8px;
+      background: #fcfeff;
     }
     .msg {
-      padding:12px 16px;
-      border-radius:14px;
-      max-width:80%;
-      line-height:1.45;
-      white-space:normal;
-    }
-    .msg p {
-      margin:0 0 8px 0;
-    }
-    .msg ul {
-      margin:6px 0 10px 18px;
-      padding:0;
-    }
-    .msg li {
-      margin-bottom:6px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      max-width: 80%;
+      word-break: break-word;
+      line-height: 1.45;
     }
     .user {
-      align-self:flex-end;
-      background:#d1eaff;
-      color:#0b2f4f;
+      align-self: flex-end;
+      background: #d1eaff;
+      color: #0b2f4f;
     }
     .bot {
-      align-self:flex-start;
-      background:#eef2f7;
-      color:#022a44;
+      align-self: flex-start;
+      background: #eef2f7;
+      color: #022a44;
     }
     .controls {
-      display:flex;
-      gap:8px;
-      margin-top:12px;
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
     }
     input[type="text"] {
-      flex:1;
-      padding:10px;
-      border-radius:8px;
-      border:1px solid #d1d5db;
-      font-size:15px;
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 15px;
     }
     button {
-      padding:10px 14px;
-      border-radius:8px;
-      border:none;
-      background:#0b5fa8;
-      color:white;
-      cursor:pointer;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: none;
+      background: #0b5fa8;
+      color: white;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
     }
     .note {
-      margin-top:10px;
-      font-size:13px;
-      color:#6b7280;
+      margin-top: 10px;
+      font-size: 13px;
+      color: #6b7280;
     }
     .error {
-      color:#b91c1c;
-      font-weight:600;
+      color: #b91c1c;
+      font-weight: 600;
     }
   </style>
 </head>
+
 <body>
   <div class="wrap">
     <h2>Demo Chat – Asistente Cancillería (Pruebas)</h2>
@@ -105,8 +100,13 @@
     <div id="messages" aria-live="polite" role="log"></div>
 
     <div class="controls">
-      <input id="input" type="text" placeholder="Escribe tu mensaje..." autocomplete="off" />
-      <button id="sendBtn">Enviar</button>
+      <input
+        id="input"
+        type="text"
+        placeholder="Escribe tu mensaje..."
+        autocomplete="off"
+      />
+      <button id="sendBtn" type="button">Enviar</button>
     </div>
 
     <div class="note">
@@ -114,107 +114,135 @@
     </div>
   </div>
 
-<script>
-(function(){
+  <script>
+    (function () {
+      // CONFIG
+      const ENDPOINT =
+        "https://api-backend-service.comware.com.co:3026/api/sam-assistant/user-question-bp/f4758fe7-94da-4608-9650-cb717fcf9e9f";
+      const TOKEN =
+        "REEMPLAZA_AQUI_TU_TOKEN_REAL";
 
-  const ENDPOINT = "https://api-backend-service.comware.com.co:3026/api/sam-assistant/user-question-bp/f4758fe7-94da-4608-9650-cb717fcf9e9f";
-  const TOKEN = "TU_TOKEN_AQUI";
-
-  function generateThreadId() {
-    return crypto.randomUUID ? crypto.randomUUID() : 'tid-' + Date.now();
-  }
-
-  const THREAD_ID = generateThreadId();
-
-  function isUUID(text) {
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(text.trim());
-  }
-
-  function formatText(text) {
-    // Convierte texto plano en HTML legible
-    return text
-      .replace(/\n\n+/g, '</p><p>')
-      .replace(/\n/g, '<br>');
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const messagesEl = document.getElementById('messages');
-    const inputEl = document.getElementById('input');
-    const sendBtn = document.getElementById('sendBtn');
-
-    function addMsg(text, who) {
-      if (!text || isUUID(text)) return;
-
-      const d = document.createElement('div');
-      d.className = 'msg ' + (who === 'user' ? 'user' : 'bot');
-
-      // Primero intenta Markdown
-      let html = marked.parse(text, { breaks: true });
-
-      // Si no hay listas ni etiquetas, fuerza formato de texto
-      if (!html.includes('<ul>') && !html.includes('<p>')) {
-        html = '<p>' + formatText(text) + '</p>';
+      function generateThreadId() {
+        return crypto.randomUUID
+          ? crypto.randomUUID()
+          : "tid-" + Date.now() + "-" + Math.random().toString(36).substring(2);
       }
 
-      d.innerHTML = html;
-      messagesEl.appendChild(d);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
+      const THREAD_ID = generateThreadId();
 
-    async function sendQuestion(q) {
-      addMsg(q, 'user');
-      sendBtn.disabled = true;
-      inputEl.disabled = true;
+      document.addEventListener("DOMContentLoaded", () => {
+        const messagesEl = document.getElementById("messages");
+        const inputEl = document.getElementById("input");
+        const sendBtn = document.getElementById("sendBtn");
 
-      try {
-        const res = await fetch(ENDPOINT, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + TOKEN
-          },
-          body: JSON.stringify({
-            question: q,
-            threadId: THREAD_ID,
-            channel: 'web'
-          })
+        // 🔓 Asegurar input siempre activo
+        inputEl.disabled = false;
+        inputEl.readOnly = false;
+        inputEl.focus();
+
+        function isUUID(text) {
+          return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+            text.trim()
+          );
+        }
+
+        function addMsg(text, who) {
+          if (!text || isUUID(text)) return;
+
+          const d = document.createElement("div");
+          d.className = "msg " + (who === "user" ? "user" : "bot");
+
+          if (who === "bot") {
+            d.innerHTML = marked.parse(text); // Markdown ✅
+          } else {
+            d.textContent = text;
+          }
+
+          messagesEl.appendChild(d);
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function showError(text) {
+          const d = document.createElement("div");
+          d.className = "msg bot error";
+          d.textContent = text;
+          messagesEl.appendChild(d);
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        async function sendQuestion(q) {
+          addMsg(q, "user");
+          sendBtn.disabled = true;
+          inputEl.disabled = true;
+
+          try {
+            const res = await fetch(ENDPOINT, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + TOKEN,
+              },
+              body: JSON.stringify({
+                question: q,
+                threadId: THREAD_ID,
+                channel: "web",
+              }),
+            });
+
+            if (!res.ok) {
+              const txt = await res.text();
+              showError("Error " + res.status + ": " + txt);
+              return;
+            }
+
+            const data = await res.json();
+
+            let reply =
+              data.isLastContent ||
+              data.response ||
+              data.answer ||
+              data.result?.output ||
+              "";
+
+            if (!reply && Array.isArray(data.messages)) {
+              const last = data.messages[data.messages.length - 1];
+              reply = last?.content?.[0]?.text || "";
+            }
+
+            if (!reply) reply = "Respuesta no disponible.";
+
+            addMsg(reply, "bot");
+          } catch (err) {
+            showError("Error conectando: " + err.message);
+          } finally {
+            sendBtn.disabled = false;
+            inputEl.disabled = false;
+            inputEl.focus();
+          }
+        }
+
+        sendBtn.addEventListener("click", () => {
+          const t = inputEl.value.trim();
+          if (!t) return;
+          inputEl.value = "";
+          sendQuestion(t);
         });
 
-        const data = await res.json();
-        const reply =
-          data.isLastContent ||
-          data.response ||
-          data.answer ||
-          data.result?.output ||
-          data.messages?.at(-1)?.content?.[0]?.text;
+        inputEl.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") sendBtn.click();
+        });
 
-        addMsg(reply || 'Respuesta no disponible', 'bot');
-
-      } catch (e) {
-        addMsg('Error de conexión con el servidor.', 'bot');
-      } finally {
-        sendBtn.disabled = false;
-        inputEl.disabled = false;
-        inputEl.focus();
-      }
-    }
-
-    sendBtn.onclick = () => {
-      const t = inputEl.value.trim();
-      if (!t) return;
-      inputEl.value = '';
-      sendQuestion(t);
-    };
-
-    inputEl.onkeydown = e => e.key === 'Enter' && sendBtn.click();
-
-    addMsg('Hola 👋\n\nEscribe tu mensaje para probar el asistente.', 'bot');
-  });
-
-})();
-</script>
+        // Mensaje inicial
+        addMsg(
+          "Hola 👋\n\nEscribe tu mensaje para probar el asistente.",
+          "bot"
+        );
+      });
+    })();
+  </script>
 </body>
 </html>
+
 
 
 
