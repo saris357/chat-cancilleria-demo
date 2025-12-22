@@ -39,7 +39,6 @@
       border-radius: 12px;
       max-width: 80%;
       line-height: 1.45;
-      white-space: normal;
     }
     .user {
       align-self: flex-end;
@@ -90,7 +89,7 @@
 
   <script>
     // =========================
-    // CONFIG ORIGINAL
+    // CONFIG
     // =========================
     const ENDPOINT = "https://api-backend-service.comware.com.co:3026/api/sam-assistant/user-question-bp/f4758fe7-94da-4608-9650-cb717fcf9e9f";
     const TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjdkYTkzNmQ1LWIzM2MtNDlhYi04YTk0LTVjM2E4OWZmZjk1YyIsImlhdCI6MTc2NjQyMzc3OSwiZXhwIjoxNzY2NjgyOTc5fQ.4l0tlk9PF1uYqePpnl4_Zlrd57EMrYo4NgFO130f7KM";
@@ -148,7 +147,7 @@
 
         const data = await res.json();
 
-        let reply =
+        const reply =
           data.isLastContent ||
           data.response ||
           data.answer ||
@@ -162,10 +161,15 @@
       }
     });
 
-    addMsg("Hola 👋\n\nEscribe tu mensaje para probar el asistente.", "bot");
+    // ✅ ÚNICO MENSAJE LOCAL
+    addMsg(
+      "Hola 👋\n\nEste es el **chat de prueba** del Asistente de Cancillería.\n\nEscribe tu mensaje para comenzar.",
+      "bot"
+    );
   </script>
 </body>
 </html>
+
 
 
 
