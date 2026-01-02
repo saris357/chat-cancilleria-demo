@@ -92,7 +92,14 @@
     // CONFIG
     // =========================
     const ENDPOINT = "https://n8n.comware.com.co/webhook/chat-cancilleria-publico";
-    const THREAD_ID = crypto.randomUUID();
+
+    // ✅ THREAD PERSISTENTE (CLAVE DEL ARREGLO)
+    let THREAD_ID = localStorage.getItem("chat-cancilleria-thread");
+
+    if (!THREAD_ID) {
+      THREAD_ID = crypto.randomUUID();
+      localStorage.setItem("chat-cancilleria-thread", THREAD_ID);
+    }
 
     const messages = document.getElementById("messages");
     const form = document.getElementById("chatForm");
@@ -158,7 +165,7 @@
       }
     });
 
-    // ✅ ÚNICO MENSAJE LOCAL
+    // ✅ MENSAJE INICIAL LOCAL
     addMsg(
       "Hola 👋\n\nEste es el **chat de prueba** del Asistente de Cancillería.\n\nEscribe tu mensaje para comenzar.",
       "bot"
@@ -166,10 +173,6 @@
   </script>
 </body>
 </html>
-
-
-
-
 
 
 
