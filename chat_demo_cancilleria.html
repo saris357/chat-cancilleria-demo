@@ -108,7 +108,16 @@
     function addMsg(text, who) {
       const d = document.createElement("div");
       d.className = "msg " + who;
-      d.innerHTML = who === "bot" ? marked.parse(text) : text;
+
+      if (who === "bot") {
+        // Parsea Markdown
+        d.innerHTML = marked.parse(text);
+        // Hacer que todos los enlaces se abran en nueva pestaña
+        d.querySelectorAll("a").forEach(a => a.setAttribute("target", "_blank"));
+      } else {
+        d.textContent = text;
+      }
+
       messages.appendChild(d);
       messages.scrollTop = messages.scrollHeight;
     }
@@ -173,6 +182,7 @@
   </script>
 </body>
 </html>
+
 
 
 
