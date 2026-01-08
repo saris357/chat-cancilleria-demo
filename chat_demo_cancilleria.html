@@ -93,13 +93,9 @@
     // =========================
     const ENDPOINT = "https://n8n.comware.com.co/webhook/chat-cancilleria-publico";
 
-    // ✅ THREAD PERSISTENTE (CLAVE DEL ARREGLO)
-    let THREAD_ID = localStorage.getItem("chat-cancilleria-thread");
-
-    if (!THREAD_ID) {
-      THREAD_ID = crypto.randomUUID();
-      localStorage.setItem("chat-cancilleria-thread", THREAD_ID);
-    }
+    // ✅ REINICIAR CONVERSACIÓN EN CADA RECARGA
+    let THREAD_ID = crypto.randomUUID(); // siempre nuevo thread
+    localStorage.setItem("chat-cancilleria-thread", THREAD_ID);
 
     const messages = document.getElementById("messages");
     const form = document.getElementById("chatForm");
