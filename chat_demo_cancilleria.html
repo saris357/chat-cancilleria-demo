@@ -1,230 +1,396 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Chat Cancillería</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chat Asistente Cancillería</title>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <style>
-
 * {
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
 }
 
 body {
-  background: #ffffff;
   margin: 0;
   padding: 0;
+  background: #f3f4f6;
+  font-family: Inter, Arial, sans-serif;
 }
 
-/* CONTENEDOR CHAT */
+/* ===== CHAT CONTAINER ===== */
 
 .chat-widget {
   width: 380px;
-  height: 640px;
-  border-radius: 18px;
+  height: 620px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
-  box-shadow: 0px 10px 30px rgba(0,0,0,0.2);
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #f5f6fa;
+  margin: 20px auto;
+}
+
+/* ===== HEADER ===== */
+
+.chat-header {
+  background: #574bff;
+  padding: 12px;
+  color: white;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: white;
+  padding: 4px;
+}
+
+.header-text {
   display: flex;
   flex-direction: column;
 }
 
-/* HEADER */
-
-.chat-header {
-  background: #5548f4;
-  padding: 15px;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.header-title {
+  font-weight: 700;
+  font-size: 15px;
 }
 
-.chat-header-left {
-  display: flex;
-  align-items: center;
-}
-
-.chat-logo {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  margin-right: 10px;
-}
-
-.chat-title {
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.chat-subtitle {
+.header-subtitle {
   font-size: 12px;
   opacity: 0.9;
 }
 
-.chat-buttons {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.chat-buttons button {
-  background: rgba(255,255,255,0.2);
+.close-btn {
+  background: transparent;
   border: none;
   color: white;
-  padding: 6px 12px;
-  border-radius: 8px;
+  font-size: 22px;
   cursor: pointer;
 }
 
-.close-btn {
-  font-size: 20px;
-  cursor: pointer;
+.header-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
 }
 
-/* BODY */
-
-.chat-body {
+.action-btn {
   flex: 1;
-  padding: 15px;
+  border: none;
+  padding: 6px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* ===== MESSAGES ===== */
+
+.chat-messages {
+  flex: 1;
+  background: #f8fafc;
+  padding: 12px;
   overflow-y: auto;
 }
 
-/* MENSAJE BOT */
-
-.bot-message {
-  background: white;
-  padding: 14px;
-  border-radius: 14px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+.message-wrapper {
   display: flex;
-  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.message-wrapper.bot {
   align-items: flex-start;
-  max-width: 95%;
+}
+
+.message-wrapper.user {
+  justify-content: flex-end;
 }
 
 .bot-avatar {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
+  background-image: url("https://storage.googleapis.com/media.helloumi.com/42497/channels/9LXPY831Z5OZJ6BT7JTZR4LRQZ9VO1LI.png");
+  background-size: cover;
+  margin-right: 8px;
 }
 
-.bot-content strong {
-  display: block;
+.message-content {
+  max-width: 75%;
+}
+
+.message-badge {
+  background: #eef2ff;
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-bottom: 6px;
 }
 
-/* BOTON INICIO */
-
-.start-btn {
-  margin-top: 12px;
-  background: #ffc107;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 10px;
-  font-weight: bold;
-  cursor: pointer;
+.badge-logo {
+  width: 18px;
+  height: 18px;
 }
 
-/* FOOTER */
+.message-bubble {
+  background: white;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
 
-.chat-footer {
+.message-wrapper.user .message-bubble {
+  background: #574bff;
+  color: white;
+}
+
+/* ===== INPUT ===== */
+
+.chat-input-container {
   padding: 10px;
+  border-top: 1px solid #e5e7eb;
   display: flex;
-  gap: 10px;
-  background: #ffffff;
-  border-top: 1px solid #ddd;
+  gap: 8px;
+  background: white;
 }
 
-.chat-footer input {
+.chat-input {
   flex: 1;
+  padding: 10px;
   border-radius: 20px;
-  border: 1px solid #ccc;
-  padding: 10px 15px;
+  border: 1px solid #d1d5db;
   outline: none;
 }
 
 .send-btn {
-  background: #5548f4;
-  border: none;
-  color: white;
-  border-radius: 50%;
   width: 42px;
   height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: #574bff;
+  color: white;
   cursor: pointer;
-  font-size: 18px;
 }
 
+/* ===== BOT START BUTTON ===== */
+
+.start-btn {
+  margin-top: 10px;
+  padding: 10px 16px;
+  background: #fbbf24;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ===== ERROR ===== */
+
+.error-msg {
+  color: red;
+  font-size: 13px;
+}
 </style>
+
 </head>
 
 <body>
 
 <div class="chat-widget">
 
-  <!-- HEADER -->
   <div class="chat-header">
 
-    <div>
-      <div class="chat-header-left">
-        <img class="chat-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Escudo_de_Colombia.svg/512px-Escudo_de_Colombia.svg.png">
-        <div>
-          <div class="chat-title">Cancillería</div>
-          <div class="chat-subtitle">Ministerio de Relaciones Exteriores</div>
+    <div class="header-top">
+      <div class="header-brand">
+        <img src="https://storage.googleapis.com/media.helloumi.com/42497/channels/9LXPY831Z5OZJ6BT7JTZR4LRQZ9VO1LI.png" class="header-logo">
+        <div class="header-text">
+          <span class="header-title">Cancillería</span>
+          <span class="header-subtitle">Ministerio de Relaciones Exteriores</span>
         </div>
       </div>
 
-      <div class="chat-buttons">
-        <button onclick="resetChat()">Inicio</button>
-        <button onclick="resetChat()">Reset</button>
-      </div>
+      <button class="close-btn">×</button>
     </div>
 
-    <div class="close-btn">×</div>
-
-  </div>
-
-  <!-- BODY -->
-  <div class="chat-body" id="chatBody">
-
-    <div class="bot-message">
-
-      <img class="bot-avatar" src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png">
-
-      <div class="bot-content">
-        <strong>MINISTERIO DE RELACIONES EXTERIORES</strong>
-
-        Hola soy <b>Abril</b>, la nueva asistente virtual del
-        <b>Ministerio de Relaciones Exteriores de Colombia</b>
-        y estoy disponible para ayudarle y mejorar su experiencia de trámite.
-
-        <br>
-
-        <button class="start-btn">¡Iniciar aquí! 🚀</button>
-      </div>
-
+    <div class="header-actions">
+      <button class="action-btn" onclick="location.reload()">Inicio</button>
+      <button class="action-btn" onclick="resetChat()">Reset</button>
     </div>
 
   </div>
 
-  <!-- FOOTER -->
-  <div class="chat-footer">
-    <input type="text" placeholder="Escribe tu mensaje...">
-    <button class="send-btn">➤</button>
-  </div>
+  <div id="messages" class="chat-messages"></div>
+
+  <form id="chatForm" class="chat-input-container">
+    <input id="input" class="chat-input" placeholder="Escribe tu mensaje..." autocomplete="off">
+    <button type="submit" class="send-btn">➤</button>
+  </form>
 
 </div>
 
 <script>
 
-function resetChat() {
-  location.reload();
+const ENDPOINT = "https://n8n.comware.com.co/webhook/chat-cancilleria-publico";
+
+let THREAD_ID = crypto.randomUUID();
+
+const messages = document.getElementById("messages");
+const form = document.getElementById("chatForm");
+const input = document.getElementById("input");
+
+function resetChat(){
+  THREAD_ID = crypto.randomUUID();
+  messages.innerHTML = "";
+  showInitialMessage();
 }
+
+function addMsg(text, who){
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "message-wrapper " + who;
+
+  if(who === "bot"){
+
+    const avatar = document.createElement("div");
+    avatar.className = "bot-avatar";
+
+    const content = document.createElement("div");
+    content.className = "message-content";
+
+    const bubble = document.createElement("div");
+    bubble.className = "message-bubble";
+    bubble.innerHTML = marked.parse(text);
+
+    content.appendChild(bubble);
+    wrapper.appendChild(avatar);
+    wrapper.appendChild(content);
+
+  } else {
+
+    const bubble = document.createElement("div");
+    bubble.className = "message-bubble";
+    bubble.textContent = text;
+    wrapper.appendChild(bubble);
+
+  }
+
+  messages.appendChild(wrapper);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function addError(text){
+  const d = document.createElement("div");
+  d.className = "error-msg";
+  d.textContent = text;
+  messages.appendChild(d);
+}
+
+function showInitialMessage(){
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "message-wrapper bot";
+
+  const avatar = document.createElement("div");
+  avatar.className = "bot-avatar";
+
+  const content = document.createElement("div");
+  content.className = "message-content";
+
+  const badge = document.createElement("div");
+  badge.className = "message-badge";
+  badge.innerHTML = `
+    <img class="badge-logo" src="https://storage.googleapis.com/media.helloumi.com/42497/channels/9LXPY831Z5OZJ6BT7JTZR4LRQZ9VO1LI.png">
+    MINISTERIO DE RELACIONES EXTERIORES
+  `;
+
+  const bubble = document.createElement("div");
+  bubble.className = "message-bubble";
+  bubble.innerHTML = `
+    Hola soy <strong>Abril</strong>, la nueva asistente virtual del
+    <strong>Ministerio de Relaciones Exteriores de Colombia</strong> y estoy
+    disponible para ayudarle y mejorar su experiencia de trámite.
+    <br>
+    <button class="start-btn" onclick="startChat()">¡Iniciar aquí! 🚀</button>
+  `;
+
+  content.appendChild(badge);
+  content.appendChild(bubble);
+
+  wrapper.appendChild(avatar);
+  wrapper.appendChild(content);
+
+  messages.appendChild(wrapper);
+}
+
+function startChat(){
+  sendMessage("Hola");
+}
+
+async function sendMessage(text){
+
+  if(!text) return;
+
+  addMsg(text,"user");
+  input.value = "";
+
+  try{
+
+    const res = await fetch(ENDPOINT,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        question:text,
+        threadId:THREAD_ID,
+        channel:"web"
+      })
+    });
+
+    const data = await res.json();
+
+    const reply =
+      data.isLastContent ||
+      data.response ||
+      data.answer ||
+      data.result?.output ||
+      "Respuesta no disponible";
+
+    addMsg(reply,"bot");
+
+  }catch(err){
+    addError("Error conexión: " + err.message);
+  }
+
+}
+
+form.addEventListener("submit",e=>{
+  e.preventDefault();
+  sendMessage(input.value.trim());
+});
+
+showInitialMessage();
 
 </script>
 
