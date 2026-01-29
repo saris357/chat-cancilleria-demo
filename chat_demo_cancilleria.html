@@ -6,7 +6,7 @@
     <title>Chat Asistente Cancillería</title>
     
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="./styles.css">
 </head>
  
 <body>
@@ -66,42 +66,38 @@
             wrapper.className = "message-wrapper " + who;
  
             if (who === "bot") {
-                // Avatar
                 const avatar = document.createElement("div");
                 avatar.className = "bot-avatar";
                 wrapper.appendChild(avatar);
  
-                // Content container
                 const contentDiv = document.createElement("div");
-               contentDiv.className = "message-content";
+                contentDiv.className = "message-content";
  
-                // Bubble
                 const bubble = document.createElement("div");
                 bubble.className = "message-bubble";
-               bubble.innerHTML = marked.parse(text);
+                bubble.innerHTML = marked.parse(text);
                 bubble.querySelectorAll("a").forEach(a => a.setAttribute("target", "_blank"));
  
-               contentDiv.appendChild(bubble);
+                contentDiv.appendChild(bubble);
                 wrapper.appendChild(contentDiv);
             } else {
-                // User message (simple bubble)
                 const bubble = document.createElement("div");
                 bubble.className = "message-bubble";
-               bubble.textContent = text;
+                bubble.textContent = text;
                 wrapper.appendChild(bubble);
             }
  
-           messages.appendChild(wrapper);
+            messages.appendChild(wrapper);
             messages.scrollTop = messages.scrollHeight;
-       }
+        }
  
         function addError(text) {
             const d = document.createElement("div");
-           d.className = "error-msg";
+            d.className = "error-msg";
             d.textContent = text;
             messages.appendChild(d);
             messages.scrollTop = messages.scrollHeight;
-       }
+        }
         
         function showTyping() {
             const wrapper = document.createElement("div");
@@ -131,21 +127,17 @@
             if (indicator) indicator.remove();
         }
  
-        // Custom function for the specific initial message design
         function showInitialMessage() {
             const wrapper = document.createElement("div");
             wrapper.className = "message-wrapper bot";
  
-            // Avatar
             const avatar = document.createElement("div");
             avatar.className = "bot-avatar";
             wrapper.appendChild(avatar);
  
-            // Content container
             const contentDiv = document.createElement("div");
             contentDiv.className = "message-content";
  
-            // Badge
             const badge = document.createElement("div");
             badge.className = "message-badge";
             badge.innerHTML = `
@@ -154,27 +146,25 @@
             `;
             contentDiv.appendChild(badge);
  
-            // Bubble
             const bubble = document.createElement("div");
             bubble.className = "message-bubble";
             bubble.innerHTML = `
                 <p style="margin:0 0 10px 0;">Hola soy <strong>Abril</strong>, la nueva asistente virtual del <strong>Ministerio de Relaciones Exteriores de Colombia</strong> y estoy disponible para ayudarle y mejorar su experiencia de trámite.</p>
-                <button class="start-btn" onclick="startChat()">¡Iniciar aquí! ��</button>
+                <button class="start-btn" onclick="startChat()">¡Iniciar aquí! 🚀</button>
             `;
             contentDiv.appendChild(bubble);
  
             wrapper.appendChild(contentDiv);
             messages.appendChild(wrapper);
-           messages.scrollTop = messages.scrollHeight;
+            messages.scrollTop = messages.scrollHeight;
         }
  
         function startChat() {
-            // Send initial greeting to trigger the bot flow
-           sendMessage("Hola");
+            sendMessage("Hola");
         }
  
         async function sendMessage(text) {
-             if (!text) return;
+            if (!text) return;
  
             addMsg(text, "user");
             input.value = "";
@@ -193,7 +183,7 @@
                         question: text,
                         threadId: THREAD_ID,
                         channel: "web"
-                   })
+                    })
                 });
                 
                 removeTyping();
@@ -216,11 +206,11 @@
  
                     addMsg(reply, "bot");
                 } catch (e) {
-                     if (textData) {
-                         addMsg(textData, "bot");
-                     } else {
-                         addError("Error: Respuesta vacía del servidor");
-                     }
+                    if (textData) {
+                        addMsg(textData, "bot");
+                    } else {
+                        addError("Error: Respuesta vacía del servidor");
+                    }
                 }
  
             } catch (err) {
@@ -241,7 +231,6 @@
         });
  
         showInitialMessage();
- 
     </script>
 </body>
 </html>
